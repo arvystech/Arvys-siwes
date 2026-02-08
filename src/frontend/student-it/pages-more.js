@@ -683,43 +683,55 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="profile-details-section">
                         <div class="profile-detail-row">
                             <span class="profile-detail-label">Full Name</span>
-                            <span class="profile-detail-value">John Doe Okonkwo</span>
+                            <span class="profile-detail-value" id="profile-full-name">Loading...</span>
                         </div>
                         <div class="profile-detail-row">
                             <span class="profile-detail-label">Email</span>
-                            <span class="profile-detail-value">john.doe@email.com</span>
+                            <span class="profile-detail-value" id="profile-email">Loading...</span>
                         </div>
                         <div class="profile-detail-row">
                             <span class="profile-detail-label">Phone</span>
-                            <span class="profile-detail-value">+234 812 345 6789</span>
+                            <span class="profile-detail-value" id="profile-phone">Loading...</span>
+                        </div>
+                        <div class="profile-detail-row">
+                            <span class="profile-detail-label">Gender</span>
+                            <span class="profile-detail-value" id="profile-gender">Loading...</span>
                         </div>
                         <div class="profile-detail-row">
                             <span class="profile-detail-label">Date of Birth</span>
-                            <span class="profile-detail-value">March 15, 1999</span>
+                            <span class="profile-detail-value" id="profile-dob">Loading...</span>
+                        </div>
+                        <div class="profile-detail-row">
+                            <span class="profile-detail-label">Location</span>
+                            <span class="profile-detail-value" id="profile-location">Loading...</span>
                         </div>
                     </div>
                 </section>
 
                 <section class="section">
                     <div class="section-header">
-                        <h2 class="section-title">Academic Information</h2>
+                        <h2 class="section-title">Academic & Training</h2>
                     </div>
                     <div class="profile-details-section">
                         <div class="profile-detail-row">
                             <span class="profile-detail-label">Institution</span>
-                            <span class="profile-detail-value">Federal Univ. of Technology</span>
+                            <span class="profile-detail-value" id="profile-institution">Loading...</span>
                         </div>
                         <div class="profile-detail-row">
                             <span class="profile-detail-label">Course</span>
-                            <span class="profile-detail-value">Computer Science</span>
+                            <span class="profile-detail-value" id="profile-course">Loading...</span>
                         </div>
                         <div class="profile-detail-row">
-                            <span class="profile-detail-label">Level</span>
-                            <span class="profile-detail-value">300 Level</span>
+                            <span class="profile-detail-label">Matric No</span>
+                            <span class="profile-detail-value" id="profile-matric">Loading...</span>
                         </div>
                         <div class="profile-detail-row">
-                            <span class="profile-detail-label">IT Duration</span>
-                            <span class="profile-detail-value">Dec 2025 - Feb 2026</span>
+                            <span class="profile-detail-label">Session / Batch</span>
+                            <span class="profile-detail-value" id="profile-session">Loading...</span>
+                        </div>
+                        <div class="profile-detail-row">
+                            <span class="profile-detail-label">Payment Status</span>
+                            <span class="profile-detail-value" id="profile-payment">Loading...</span>
                         </div>
                     </div>
                 </section>
@@ -1036,7 +1048,7 @@ function initHelpPage() {
     const form = document.getElementById('reportForm');
 
     // Also re-init FAQs
-    initFAQs();
+    initFAQ();
 
     if (reportBtn) {
         reportBtn.addEventListener('click', () => {

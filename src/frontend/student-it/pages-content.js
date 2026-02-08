@@ -778,18 +778,18 @@ function initProjectPage() {
             const explanation = explanationField ? explanationField.value : '';
 
             if (!githubLink) {
-                showToast('Please enter your GitHub repository link');
+                showToast('Please enter your GitHub repository link', 'error');
                 return;
             }
 
             if (!explanation.trim()) {
-                showToast('Please explain how you solved the problem');
+                showToast('Please explain how you solved the problem', 'error');
                 return;
             }
 
             const wordCount = explanation.trim().split(/\s+/).filter(w => w.length > 0).length;
             if (wordCount > 100) {
-                showToast('Explanation exceeds 100 words limit');
+                showToast('Explanation exceeds 100 words limit', 'error');
                 return;
             }
 
@@ -886,6 +886,14 @@ function initLogbook() {
 
     if (addLogBtn && logSubmissionPanel) {
         addLogBtn.addEventListener('click', () => {
+            // Pre-fill form if current class info is available
+            if (window.currentClass) {
+                const topicField = document.getElementById('logTopic');
+                const tutorField = document.getElementById('logTutor');
+                if (topicField && !topicField.value) topicField.value = window.currentClass.topic || '';
+                if (tutorField && !tutorField.value) tutorField.value = window.currentClass.instructorName || '';
+            }
+
             logSubmissionPanel.classList.add('active');
             document.body.style.overflow = 'hidden';
             if (typeof window.blurMainContainer === 'function') window.blurMainContainer(true);
@@ -914,7 +922,7 @@ function initLogbook() {
     }
 
     if (saveLogBtn) {
-        saveLogBtn.addEventListener('click', () => {
+        saveLogBtn.addEventListener('click', async () => {
             const content = logContent.value;
             const week = document.getElementById('logWeek').value;
             const day = document.getElementById('logDay').value;
@@ -922,122 +930,145 @@ function initLogbook() {
             const tutor = document.getElementById('logTutor').value;
 
             if (!content || !topic || !tutor) {
-                showToast('Please fill in all fields');
+                showToast('Please fill in all fields', 'error');
+                return;
+            }
+
+            if (!window.currentClassId) {
+                showToast('No active class to log for', 'error');
                 return;
             }
 
             const wordCount = content.trim().split(/\s+/).filter(w => w.length > 0).length;
             if (wordCount > 50) {
-                showToast('Log must be 50 words or less');
+                showToast('Log must be 50 words or less', 'error');
                 return;
             }
 
-            // Simulate save
+            // Real save
             saveLogBtn.disabled = true;
-            saveLogBtn.innerHTML = 'Saving...';
+            const originalText = saveLogBtn.innerHTML;
+            saveLogBtn.innerHTML = '<span>Saving...</span>';
 
-            setTimeout(() => {
-                logSubmissionPanel.classList.remove('active');
-                document.body.style.overflow = '';
-                if (typeof window.blurMainContainer === 'function') window.blurMainContainer(false);
-
-                generateShareableCard({
-                    week, day, topic, tutor, content
+            try {
+                const response = await authenticatedFetch('/logbook/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        classId: window.currentClassId,
+                        entry: content
+                    })
                 });
 
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    logSubmissionPanel.classList.remove('active');
+                    document.body.style.overflow = '';
+                    if (typeof window.blurMainContainer === 'function') window.blurMainContainer(false);
+
+                    generateShareableCard({
+                        week, day, topic, tutor, content
+                    });
+
+                    showToast('Log saved successfully!');
+
+                    // Reset form
+                    logContent.value = '';
+                    logWordCount.textContent = '0';
+
+                    // Refresh dashboard and logs
+                    if (window.loadDashboardData) window.loadDashboardData();
+                    if (window.loadLogbookEntries) window.loadLogbookEntries();
+                } else {
+                    showToast(result.message || 'Failed to save log', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Error saving logbook entry', 'error');
+            } finally {
                 saveLogBtn.disabled = false;
-                saveLogBtn.innerHTML = '<span>Save & Generate Card</span>';
-                showToast('Log saved! Here is your shareable card.');
-
-                // Reset form
-                logContent.value = '';
-                logWordCount.textContent = '0';
-                document.getElementById('logTopic').value = '';
-                document.getElementById('logTutor').value = '';
-            }, 1000);
-
+                saveLogBtn.innerHTML = originalText;
+            }
         });
     }
 
-    // Share buttons on existing logs
-    const shareBtns = document.querySelectorAll('.share-btn');
-    shareBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            generateShareableCard({
-                week: 8, day: 4, topic: 'Advanced UI Interactivity', tutor: 'Sarah Johnson',
-                content: 'Build a responsive admin dashboard with charts, tables, and user management. Managed to implement the sidebar and main content areas.'
-            });
-        });
-    });
+    // Load entries on init
+    loadLogbookEntries();
 
-    function generateShareableCard(data) {
-        const container = document.getElementById('shareableCardContainer');
-        const modal = document.getElementById('shareCardModal');
+    // Share buttons on existing logs - handled in renderLogbookEntries
 
-        if (!container || !modal) return;
+}
 
-        container.innerHTML = `
-            <div class="shareable-log-card status-story-optimized">
-                <div class="story-branding">
-                    <img src="logo/logo.svg" alt="StudentIT" class="story-logo">
-                    <span class="story-app-name">StudentIT</span>
+window.generateShareableCard = function (data) {
+    const container = document.getElementById('shareableCardContainer');
+    const modal = document.getElementById('shareCardModal');
+
+    if (!container || !modal) return;
+
+    // Get current student name for the card
+    const studentName = window.currentStudent ? window.currentStudent.name : 'Student';
+    const studentInitials = studentName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+    container.innerHTML = `
+        <div class="shareable-log-card status-story-optimized">
+            <div class="story-branding">
+                <img src="logo/logo.svg" alt="StudentIT" class="story-logo">
+                <span class="story-app-name">StudentIT</span>
+            </div>
+
+            <div class="story-middle">
+                <div class="story-meta">
+                    <span class="story-date">${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                    <h2 class="story-topic">${data.topic}</h2>
                 </div>
 
-                <div class="story-middle">
-                    <div class="story-meta">
-                        <span class="story-date">${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
-                        <h2 class="story-topic">${data.topic}</h2>
-                    </div>
-
-                    <div class="story-log-text">
-                        <svg class="quote-icon" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017C19.5693 16 20.017 15.5523 20.017 15V9C20.017 8.44772 19.5693 8 19.017 8H16.017C14.9124 8 14.017 7.10457 14.017 6V3H20.017C21.1216 3 22.017 3.89543 22.017 5V19C22.017 20.1046 21.1216 21 20.017 21H14.017ZM2.01697 21L2.01697 18C2.01697 16.8954 2.9124 16 4.01697 16H7.01697C7.56925 16 8.01697 15.5523 8.01697 15V9C8.01697 8.44772 7.56925 8 7.01697 8H4.01697C2.9124 8 2.01697 7.10457 2.01697 6V3H8.01697C9.12154 3 10.017 3.89543 10.017 5V19C10.017 20.1046 9.12154 21 8.01697 21H2.01697Z"/>
-                        </svg>
-                        <p>${data.content}</p>
-                    </div>
-                </div>
-
-                <div class="story-footer">
-                    <div class="story-student">
-                        <div class="story-avatar">JD</div>
-                        <div class="story-student-details">
-                            <span class="story-name">John Doe</span>
-                            <span class="story-week">Week ${data.week} • Day ${data.day}</span>
-                        </div>
-                    </div>
-                    <div class="story-qr-placeholder">
-                        <div class="qr-label">TRACKING</div>
-                        <div class="qr-value">PROGRESS</div>
-                    </div>
+                <div class="story-log-text">
+                    <svg class="quote-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017C19.5693 16 20.017 15.5523 20.017 15V9C20.017 8.44772 19.5693 8 19.017 8H16.017C14.9124 8 14.017 7.10457 14.017 6V3H20.017C21.1216 3 22.017 3.89543 22.017 5V19C22.017 20.1046 21.1216 21 20.017 21H14.017ZM2.01697 21L2.01697 18C2.01697 16.8954 2.9124 16 4.01697 16H7.01697C7.56925 16 8.01697 15.5523 8.01697 15V9C8.01697 8.44772 7.56925 8 7.01697 8H4.01697C2.9124 8 2.01697 7.10457 2.01697 6V3H8.01697C9.12154 3 10.017 3.89543 10.017 5V19C10.017 20.1046 9.12154 21 8.01697 21H2.01697Z"/>
+                    </svg>
+                    <p>${data.content}</p>
                 </div>
             </div>
-        `;
 
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+            <div class="story-footer">
+                <div class="story-student">
+                    <div class="story-avatar">${studentInitials}</div>
+                    <div class="story-student-details">
+                        <span class="story-name">${studentName}</span>
+                        <span class="story-week">${data.week ? `Week ${data.week}` : ''} ${data.day ? `• Day ${data.day}` : ''}</span>
+                    </div>
+                </div>
+                <div class="story-qr-placeholder">
+                    <div class="qr-label">TRACKING</div>
+                    <div class="qr-value">PROGRESS</div>
+                </div>
+            </div>
+        </div>
+    `;
 
-        const downloadBtn = document.getElementById('downloadCardBtn');
-        const closeShare = document.getElementById('closeShareModal');
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
 
-        if (downloadBtn) {
-            downloadBtn.onclick = () => {
-                showToast('Card saved to your photos!');
-                setTimeout(() => {
-                    modal.classList.remove('active');
-                    document.body.style.overflow = '';
-                }, 1000);
-            };
-        }
+    const downloadBtn = document.getElementById('downloadCardBtn');
+    const closeShare = document.getElementById('closeShareModal');
 
-        if (closeShare) {
-            closeShare.onclick = () => {
+    if (downloadBtn) {
+        downloadBtn.onclick = () => {
+            showToast('Card saved to your photos!');
+            setTimeout(() => {
                 modal.classList.remove('active');
                 document.body.style.overflow = '';
-            };
-        }
+            }, 1000);
+        };
     }
 
+    if (closeShare) {
+        closeShare.onclick = () => {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        };
+    }
 }
 
 // Initialize Payments
@@ -1096,13 +1127,106 @@ function initPayments() {
     }
 }
 
-// Toast function
-window.showToast = function (message) {
-    const toast = document.getElementById('toast');
-    const toastMessage = document.getElementById('toastMessage');
-    if (toast && toastMessage) {
-        toastMessage.textContent = message;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 3000);
+
+// Load logbook entries from API
+window.loadLogbookEntries = async function () {
+    try {
+        const response = await authenticatedFetch('/logbook/entries');
+        if (!response) return;
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            renderLogbookEntries(result.entries);
+        }
+    } catch (err) {
+        console.error('Error loading logs:', err);
     }
+};
+
+// Render entries to the UI
+function renderLogbookEntries(entries) {
+    const container = document.getElementById('currentWeekLogs');
+    if (!container) return;
+
+    if (!entries || entries.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 40px 24px; color: var(--gray-400); background: var(--gray-50); border-radius: var(--radius-xl); border: 1px dashed var(--gray-200);">No entries yet. Add your first log!</div>';
+        return;
+    }
+
+    container.innerHTML = entries.map((entry, index) => {
+        const date = new Date(entry.created_at).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        const isLatest = index === 0;
+
+        return `
+            <div class="logbook-entry-expandable ${isLatest ? 'expanded' : ''}" data-id="${entry.entry_id}">
+                <div class="logbook-week-header">
+                    <div style="flex: 1;">
+                        <div class="logbook-day-tag">${date} ${isLatest ? '• Latest' : ''}</div>
+                        <div class="logbook-entry-preview">${entry.entry.substring(0, 60)}${entry.entry.length > 60 ? '...' : ''}</div>
+                    </div>
+                    <div class="week-collapse-toggle">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6,9 12,15 18,9" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="log-entry-content" style="display: ${isLatest ? 'block' : 'none'};">
+                    <div class="log-entry-class-details">
+                        <div style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase; margin-bottom: 8px;">Class Details</div>
+                        <div style="font-weight: 700; font-size: 14px; color: #ffffff;">${entry.title}</div>
+                        <div style="font-size: 12px; color: rgba(255,255,255,0.8);">Tutor: ${entry.instructor_name || 'TBA'}</div>
+                    </div>
+                    <div class="log-entry-full">
+                        <div style="font-size: 11px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; margin-bottom: 8px;">Your Learning Log</div>
+                        <p style="font-size: 14px; color: var(--gray-800); line-height: 1.6;">${entry.entry}</p>
+                        <div style="display: flex; gap: 8px; margin-top: 12px;">
+                            <button class="project-action-btn mini share-btn" style="padding: 6px 12px; font-size: 11px;" 
+                                data-topic="${entry.title.replace(/"/g, '&quot;')}" 
+                                data-content="${entry.entry.replace(/"/g, '&quot;')}"
+                                data-week="${entry.week_number || ''}"
+                                data-day="${entry.day_number || ''}">
+                                Share Card
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Re-attach listeners for expansion
+    const expandables = container.querySelectorAll('.logbook-entry-expandable');
+    expandables.forEach(entry => {
+        entry.querySelector('.logbook-week-header').addEventListener('click', () => {
+            const content = entry.querySelector('.log-entry-content');
+            const isExpanded = entry.classList.contains('expanded');
+
+            // Close others
+            expandables.forEach(e => {
+                e.classList.remove('expanded');
+                e.querySelector('.log-entry-content').style.display = 'none';
+            });
+
+            if (!isExpanded) {
+                entry.classList.add('expanded');
+                content.style.display = 'block';
+            }
+        });
+    });
+
+    // Handle share buttons specifically
+    container.querySelectorAll('.share-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (typeof window.generateShareableCard === 'function') {
+                window.generateShareableCard({
+                    topic: btn.dataset.topic,
+                    content: btn.dataset.content,
+                    week: btn.dataset.week,
+                    day: btn.dataset.day
+                });
+            }
+        });
+    });
 }

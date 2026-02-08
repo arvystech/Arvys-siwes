@@ -1,0 +1,291 @@
+/**
+ * Dashboard Data Loader
+ * Fetches and populates home page data
+ */
+
+// Load dashboard data on page load
+async function loadDashboardData() {
+    try {
+        const response = await authenticatedFetch('/student/api/dashboard');
+        if (!response) return;
+
+        if (!response.ok) {
+            throw new Error('Failed to load dashboard data');
+        }
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to load dashboard data');
+        }
+
+        const { data } = result;
+
+        // Populate student info in header
+        populateStudentInfo(data.student);
+
+        // Populate current class info
+        populateCurrentClass(data.currentClass);
+
+        // Populate attendance stats
+        populateAttendanceStats(data.attendanceStats);
+
+        // Update logbook status
+        updateLogbookStatus(data.logbookStatus);
+
+        console.log('Dashboard data loaded successfully');
+
+    } catch (error) {
+        console.error('Error loading dashboard:', error);
+        showToast('Failed to load dashboard data', 'error');
+    }
+}
+
+// Populate student info (name, avatar)
+function populateStudentInfo(student) {
+    // Update user name
+    const userNameEl = document.querySelector('.user-name');
+    if (userNameEl && student.name) {
+        userNameEl.textContent = student.name;
+    }
+
+    // Update avatar with initials
+    const avatarEl = document.querySelector('.avatar span');
+    if (avatarEl && student.name) {
+        const initials = student.name
+            .split(' ')
+            .map(word => word[0])
+            .join('')
+            .toUpperCase()
+            .substring(0, 2);
+        avatarEl.textContent = initials;
+    }
+
+    // Store student data globally for other uses
+    window.currentStudent = student;
+}
+
+// Populate current class information
+function populateCurrentClass(currentClass) {
+    const classPanel = document.querySelector('.class-panel');
+    const statusBanner = document.getElementById('statusBanner');
+    const bannerText = document.getElementById('bannerStatusText');
+
+    if (!currentClass) {
+        // No current class - hide panel and update banner
+        if (classPanel) classPanel.style.display = 'none';
+        if (statusBanner) {
+            statusBanner.classList.remove('ongoing', 'upcoming', 'completed');
+            statusBanner.classList.add('no-class');
+
+            const liveIndicator = statusBanner.querySelector('.live-status-indicator');
+            if (liveIndicator) liveIndicator.style.display = 'none';
+
+            if (bannerText) bannerText.textContent = 'No class scheduled for today';
+        }
+        console.log('No current class scheduled');
+        return;
+    }
+
+    // Class exists - show panel and update banner
+    if (classPanel) classPanel.style.display = 'block';
+
+    // Update Banner based on precise status
+    if (statusBanner) {
+        statusBanner.className = 'status-banner'; // Reset
+        const liveIndicator = statusBanner.querySelector('.live-status-indicator');
+        if (liveIndicator) liveIndicator.style.display = 'flex'; // Restore visibility
+
+        const pulseDot = liveIndicator ? liveIndicator.querySelector('.pulse-dot') : null;
+        const liveLabel = liveIndicator ? liveIndicator.querySelector('.live-label') : null;
+
+        if (currentClass.status === 'ongoing') {
+            statusBanner.classList.add('ongoing');
+            if (bannerText) bannerText.textContent = 'Class is ongoing';
+            if (pulseDot) pulseDot.className = 'pulse-dot ongoing';
+            if (liveLabel) {
+                liveLabel.textContent = 'LIVE';
+                liveLabel.style.display = 'inline';
+            }
+        } else if (currentClass.status === 'upcoming') {
+            statusBanner.classList.add('upcoming');
+            if (bannerText) bannerText.textContent = `Next class at ${currentClass.startTime}`;
+            if (pulseDot) pulseDot.className = 'pulse-dot upcoming';
+            if (liveLabel) {
+                liveLabel.textContent = 'SOON';
+                liveLabel.style.display = 'inline';
+                liveLabel.style.color = 'var(--info)';
+                liveLabel.style.background = 'rgba(59, 130, 246, 0.1)';
+            }
+        } else if (currentClass.status === 'completed') {
+            statusBanner.classList.add('completed');
+            if (bannerText) bannerText.textContent = 'Class has ended for today';
+            if (pulseDot) pulseDot.className = 'pulse-dot completed';
+            if (liveLabel) liveLabel.style.display = 'none';
+        }
+    }
+
+    // Update Status Badge inside the card
+    const statusBadge = document.getElementById('classStatusBadge');
+    if (statusBadge) {
+        statusBadge.className = 'class-badge'; // Reset
+        statusBadge.classList.add(currentClass.status);
+        statusBadge.textContent = currentClass.status.charAt(0).toUpperCase() + currentClass.status.slice(1);
+    }
+
+    // Update class topic
+    const topicTitleEl = document.getElementById('classTopicTitle');
+    if (topicTitleEl && currentClass.topic) {
+        topicTitleEl.textContent = currentClass.topic;
+    }
+
+
+    // Update subtopics
+    const subtopicsList = document.getElementById('classSubtopics');
+    if (subtopicsList && currentClass.subtopics && Array.isArray(currentClass.subtopics)) {
+        subtopicsList.innerHTML = currentClass.subtopics
+            .map(sub => `<li class="class-subtopic">${sub}</li>`)
+            .join('');
+    }
+
+    // Update lecturer name
+    const lecturerNameEl = document.querySelector('.lecturer-header .meta-value');
+    if (lecturerNameEl && currentClass.instructorName) {
+        lecturerNameEl.textContent = currentClass.instructorName;
+    }
+
+    // Update lecturer avatar
+    const lecturerAvatarEl = document.querySelector('.lecturer-avatar img');
+    if (lecturerAvatarEl && currentClass.instructorName) {
+        lecturerAvatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentClass.instructorName)}&background=2a38a8&color=fff`;
+        lecturerAvatarEl.alt = currentClass.instructorName;
+    }
+
+    // Update timing
+    const timingEls = document.querySelectorAll('.timing-item span');
+    if (timingEls.length >= 2 && currentClass.startTime && currentClass.endTime) {
+        timingEls[0].textContent = `${currentClass.startTime} - ${currentClass.endTime}`;
+        if (currentClass.duration) {
+            timingEls[1].textContent = currentClass.duration;
+        }
+    }
+
+    // Update attendance indicator
+    const attendanceIndicator = document.getElementById('classAttendanceStatus');
+    const logBtn = document.getElementById('panelLogAttendanceBtn');
+
+    // Store class ID globally for the button click handler
+    window.currentClassId = currentClass.id;
+
+    if (attendanceIndicator && logBtn) {
+        if (currentClass.isAttendanceLogged) {
+            attendanceIndicator.style.display = 'flex';
+            logBtn.style.display = 'none';
+        } else {
+            attendanceIndicator.style.display = 'none';
+            // Show button only if class is ongoing or upcoming (if policy allows)
+            // For now, assuming only ongoing or recently completed matters, but let's stick to ongoing.
+            // Adjust logic based on requirements. If upcoming, maybe disable it?
+            if (currentClass.status === 'ongoing') {
+                logBtn.style.display = 'block';
+                logBtn.disabled = false;
+                logBtn.textContent = 'Log Attendance';
+            } else {
+                logBtn.style.display = 'none';
+            }
+        }
+    }
+}
+
+// Populate attendance statistics
+function populateAttendanceStats(stats) {
+    // Update attendance percentage
+    const attendancePercentageEl = document.querySelector('.home-stat[data-nav="progress-overview"] .home-stat-value');
+    if (attendancePercentageEl) {
+        attendancePercentageEl.textContent = `${stats.percentage}%`;
+    }
+
+    // Update logs count
+    const logsCountEl = document.querySelector('.home-stat[data-nav="attendance"] .home-stat-value');
+    if (logsCountEl) {
+        logsCountEl.textContent = stats.logsCount;
+    }
+
+    // Update projects count
+    const projectsCountEl = document.querySelector('.home-stat[data-nav="projects"] .home-stat-value');
+    if (projectsCountEl) {
+        projectsCountEl.textContent = `${stats.projectsCompleted}/${stats.projectsTotal}`;
+    }
+}
+
+// Update logbook status
+function updateLogbookStatus(logbookStatus) {
+    const logbookStatusTextEl = document.getElementById('logbookStatusText');
+    const logbookCtaBtnEl = document.getElementById('logbookCtaBtn');
+
+    if (logbookStatusTextEl) {
+        if (logbookStatus.hasLoggedToday) {
+            logbookStatusTextEl.textContent = 'Logged for today';
+            if (logbookCtaBtnEl) {
+                logbookCtaBtnEl.style.display = 'none';
+            }
+        } else {
+            logbookStatusTextEl.textContent = "You haven't logged today";
+            if (logbookCtaBtnEl) {
+                logbookCtaBtnEl.style.display = 'flex';
+            }
+        }
+    }
+}
+
+// Call this when the dashboard page becomes active
+window.loadDashboardData = loadDashboardData;
+
+// Auto-load on initial page load
+// Auto-load on initial page load
+document.addEventListener('DOMContentLoaded', () => {
+    // Attendance Button Listener
+    const btn = document.getElementById('panelLogAttendanceBtn');
+    if (btn) {
+        btn.addEventListener('click', async () => {
+            if (!window.currentClassId) return;
+
+            try {
+                // Disable button and show loading state
+                btn.disabled = true;
+                const originalText = btn.textContent;
+                btn.textContent = 'Marking...';
+
+                const response = await authenticatedFetch(`/student/api/mark-attendance?classId=${window.currentClassId}&status=present`);
+
+                // Handle non-JSON responses gracefully
+                let result;
+                try {
+                    result = await response.json();
+                } catch (e) {
+                    throw new Error('Invalid server response');
+                }
+
+                if (response.ok && result.success) {
+                    showToast('Attendance marked successfully');
+                    btn.style.display = 'none';
+                    // Update UI immediately (optimistic update)
+                    const indicator = document.getElementById('classAttendanceStatus');
+                    if (indicator) indicator.style.display = 'flex';
+
+                    // Reload data to be sure
+                    loadDashboardData();
+                } else {
+                    showToast(result.message || 'Failed to mark attendance', 'error');
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Error marking attendance', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Log Attendance';
+            }
+        });
+    }
+});

@@ -3,16 +3,22 @@
  * A modern, habit-forming student dashboard
  */
 
-// Session Check
-// if (localStorage.getItem('isLoggedIn') !== 'true') {
-//     window.location.href = 'login.html';
-// }
+// Session Check - Verify authentication on app load
+(async function () {
+    const userData = await checkAuth();
+    if (userData) {
+        console.log('User authenticated:', userData);
+        window.currentUser = userData;
 
-// Global Logout Function
-window.logout = function () {
-    localStorage.removeItem('isLoggedIn');
-    window.location.href = 'login.html';
-};
+        // Initial data load after auth
+        if (typeof window.loadDashboardData === 'function') {
+            window.loadDashboardData();
+        }
+    }
+})();
+
+// Global Logout Function - now uses backend logout
+window.logout = logout;
 
 // Hide Loader
 window.addEventListener('load', () => {
@@ -135,6 +141,17 @@ window.navigateToPage = function (pageId, isBack = false) {
         window.scrollTo(0, 0);
     }
 
+    // Trigger data loading for specific pages
+    if (pageId === 'dashboard') {
+        if (typeof window.loadDashboardData === 'function') {
+            window.loadDashboardData();
+        }
+    } else if (pageId === 'profile') {
+        if (typeof window.loadProfileData === 'function') {
+            window.loadProfileData();
+        }
+    }
+
     // Haptic feedback simulation
     if (navigator.vibrate) {
         navigator.vibrate(10);
@@ -203,121 +220,6 @@ function updateTime() {
     }
     if (currentDateEl) {
         currentDateEl.textContent = now.toLocaleDateString('en-US', options);
-    }
-
-    updateClassStatus(hoursNum, minutesNum);
-}
-
-function updateClassStatus(h, m) {
-    // Current class is 14:00 - 15:30
-    const currentTimeMinutes = h * 60 + m;
-    const startTimeMinutes = 14 * 60; // 14:00
-    const endTimeMinutes = 15 * 60 + 30; // 15:30
-    const warningMinutes = 15; // 15 minutes before class
-
-    const isOngoing = currentTimeMinutes >= startTimeMinutes && currentTimeMinutes <= endTimeMinutes;
-    const isCompleted = currentTimeMinutes > endTimeMinutes;
-    const isUpcoming = currentTimeMinutes >= (startTimeMinutes - warningMinutes) && currentTimeMinutes < startTimeMinutes;
-
-    // Update Live Status Banner
-    const liveIndicator = document.getElementById('liveStatusIndicator');
-    const bannerStatusText = document.getElementById('bannerStatusText');
-    const pulseDot = liveIndicator ? liveIndicator.querySelector('.pulse-dot') : null;
-    const liveLabel = liveIndicator ? liveIndicator.querySelector('.live-label') : null;
-
-    if (statusBanner && liveIndicator && bannerStatusText && pulseDot) {
-        if (isOngoing) {
-            statusBanner.className = 'status-banner ongoing';
-            pulseDot.className = 'pulse-dot ongoing';
-            if (liveLabel) {
-                liveLabel.textContent = 'LIVE';
-                liveLabel.style.display = 'inline';
-                liveLabel.style.color = 'var(--danger)';
-                liveLabel.style.background = 'rgba(239, 68, 68, 0.1)';
-            }
-            bannerStatusText.textContent = 'Class is ongoing';
-        } else if (isCompleted) {
-            statusBanner.className = 'status-banner completed';
-            pulseDot.className = 'pulse-dot completed';
-            if (liveLabel) {
-                liveLabel.textContent = '';
-                liveLabel.style.display = 'none';
-            }
-            bannerStatusText.textContent = 'Just completed';
-        } else if (isUpcoming) {
-            statusBanner.className = 'status-banner upcoming';
-            pulseDot.className = 'pulse-dot upcoming';
-            if (liveLabel) {
-                liveLabel.textContent = 'SOON';
-                liveLabel.style.display = 'inline';
-                liveLabel.style.color = 'var(--warning)';
-                liveLabel.style.background = 'rgba(245, 158, 11, 0.1)';
-            }
-            bannerStatusText.textContent = 'About to start';
-        } else {
-            statusBanner.className = 'status-banner no-class';
-            pulseDot.className = 'pulse-dot';
-            pulseDot.style.background = 'var(--gray-400)';
-            pulseDot.style.animation = 'none';
-            if (liveLabel) {
-                liveLabel.style.display = 'none';
-            }
-            bannerStatusText.textContent = 'No class at the moment';
-        }
-    }
-
-    // Update Dashboard Class Card Status
-    const classStatusLive = document.getElementById('classStatusLive');
-    if (classStatusLive) {
-        const cardPulseDot = classStatusLive.querySelector('.pulse-dot');
-        const statusText = classStatusLive.querySelector('.status-text');
-
-        if (isOngoing) {
-            classStatusLive.className = 'class-status-live';
-            if (cardPulseDot) cardPulseDot.className = 'pulse-dot ongoing';
-            if (statusText) statusText.textContent = 'Class is ongoing';
-        } else if (isCompleted) {
-            classStatusLive.className = 'class-status-live completed';
-            if (cardPulseDot) cardPulseDot.className = 'pulse-dot completed';
-            if (statusText) statusText.textContent = 'Just completed';
-        } else if (isUpcoming) {
-            classStatusLive.className = 'class-status-live upcoming';
-            if (cardPulseDot) cardPulseDot.className = 'pulse-dot upcoming';
-            if (statusText) statusText.textContent = 'About to start';
-        } else {
-            classStatusLive.className = 'class-status-live';
-            if (cardPulseDot) {
-                cardPulseDot.className = 'pulse-dot';
-                cardPulseDot.style.background = 'var(--gray-400)';
-            }
-            if (statusText) statusText.textContent = 'No class scheduled';
-        }
-
-        // Update time meta if completed
-        if (isCompleted) {
-            const timeMetaLabel = document.querySelectorAll('.meta-label')[1];
-            if (timeMetaLabel) timeMetaLabel.textContent = 'Ended At';
-            const timeMetaValue = document.querySelectorAll('.meta-value')[1];
-            if (timeMetaValue) timeMetaValue.textContent = '15:30';
-        }
-    }
-
-    updateAttendanceIndicator();
-}
-
-function updateAttendanceIndicator() {
-    if (classAttendanceStatus && panelLogAttendanceBtn) {
-        if (isCheckedIn) {
-            classAttendanceStatus.style.display = 'flex';
-            panelLogAttendanceBtn.style.display = 'none';
-            if (logbookStatusText) logbookStatusText.textContent = 'Attendance Logged';
-            if (logbookCtaBtn) logbookCtaBtn.style.display = 'none';
-        } else {
-            classAttendanceStatus.style.display = 'none';
-            panelLogAttendanceBtn.style.display = 'block';
-            if (logbookStatusText) logbookStatusText.textContent = 'You haven\'t logged today';
-            if (logbookCtaBtn) logbookCtaBtn.style.display = 'flex';
-        }
     }
 }
 
@@ -434,8 +336,31 @@ function formatTime(date) {
 }
 
 // Toast
-window.showToast = function (message) {
+window.showToast = function (message, type = 'success') {
     if (toast && toastMessage) {
+        const toastIcon = toast.querySelector('.toast-icon');
+
+        // Reset and apply error class
+        toast.classList.remove('error');
+        if (type === 'error') {
+            toast.classList.add('error');
+            if (toastIcon) {
+                toastIcon.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                    </svg>
+                `;
+            }
+        } else if (toastIcon) {
+            toastIcon.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20,6 9,17 4,12" />
+                </svg>
+            `;
+        }
+
         toastMessage.textContent = message;
         toast.classList.add('show');
 

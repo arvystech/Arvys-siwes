@@ -10,14 +10,14 @@ const errorHandler = require("./middleware/errorMiddleware");
 const rateLimiter = require("./middleware/rateLimiter");
 
 // Routes
-// Routes
-const paymentRoutes = require("./routes/paymentRoutes");
-const classRoutes = require("./routes/classRoutes");
-const logbookRoutes = require("./routes/logbookRoutes");
+// const paymentRoutes = require("./routes/paymentRoutes");
+const logbookRoutes = require("./modules/logbook/routes/logbookRoutes");
 
 // Module Routes
 const studentApiRoutes = require("./modules/student/routes/api");
 const studentAuthRoutes = require("./modules/student/routes/auth");
+
+const classApiRoutes = require("./modules/class/routes/api");
 
 const app = express();
 
@@ -27,18 +27,19 @@ app.use(cors());
 app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
-// app.use(errorHandler); // Moved to bottom
 // app.use(rateLimiter);
 
 // Use external routes
-app.use("/payment", paymentRoutes);
-app.use("/class", classRoutes);
+// app.use("/payment", paymentRoutes);
 app.use("/logbook", logbookRoutes);
 
 // Student Module
 // API & Auth
 app.use("/student/api", studentApiRoutes);
 app.use("/student/auth", studentAuthRoutes);
+
+// Class Module
+app.use('/class/api', classApiRoutes);
 
 // Main Frontend - Static Files
 app.use('/assets', express.static(path.join(__dirname, "../frontend/assets")));

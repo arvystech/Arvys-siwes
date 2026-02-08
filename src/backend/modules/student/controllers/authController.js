@@ -1,8 +1,8 @@
 // controllers/authController.js
 const bcrypt = require('bcrypt');
 
-// studentsModel
-const studentsModel = require('../../../models/studentsModel');
+// studentModel
+const studentsModel = require('../models/studentModel');
 
 // Utility to generate JWT
 const generateToken = require('../../../utils/generateToken');
@@ -29,7 +29,7 @@ const student_login_post = async (req, res) => {
     }
     let foundStudent = checkStudentMatricNo[0];
 
-    // Check is password is correct
+    // Check if password is correct
     if (password !== foundStudent.password) {
       console.log('Incorrect password!');
       return res.status(401).json({ success: false, message: 'Incorrect password!' });
@@ -52,12 +52,11 @@ const student_login_post = async (req, res) => {
     // Set cookie with the token
     res.cookie('arvys_siwes_student_token', jwtToken, {
       httpOnly: true,
-      secure: true,
-      maxAge: 1000 * 60 * 60, // 1 hour in milliseconds
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 1000 * 60 * 60, // 1 hour
+      path: '/'
     });
-
-
-    // res.redirect('/user/dashboard');
 
     return res.status(200).json({ success: true, generatedToken: jwtToken });
   } catch (error) {
@@ -70,7 +69,7 @@ const student_login_post = async (req, res) => {
 const student_logout_post = async (req, res) => {
   try {
     // Delete the cookie
-    res.clearCookie('arvys_siwes_student_jwt_token');
+    res.clearCookie('arvys_siwes_student_token');
     return res.status(200).json({ success: true, message: 'Logged out successfully' });
   } catch (error) {
     console.log('Internal server error: ', error);
