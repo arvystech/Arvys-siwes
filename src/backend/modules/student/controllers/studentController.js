@@ -60,6 +60,8 @@ const student_dashboard_get = async (req, res) => {
           endTime: endTime.format('hh:mm A'),
           duration: durationStr,
           status: status, // 'upcoming', 'ongoing', 'completed'
+          weekNumber: cl.week_number,
+          dayNumber: cl.day_number,
           description: cl.description,
           subtopics: typeof cl.subtopics === 'string' ? JSON.parse(cl.subtopics) : cl.subtopics,
           isAttendanceLogged: isAttendanceLogged

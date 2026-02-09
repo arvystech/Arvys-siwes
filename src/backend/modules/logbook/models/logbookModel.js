@@ -39,9 +39,11 @@ const getEntriesByStudentId = async (studentId, conn = null) => {
         le.*, 
         cl.title, 
         cl.date,
+        cl.week_number,
+        cl.day_number,
         CONCAT(s.first_name, ' ', s.last_name) as instructor_name
       FROM logbook_entries le 
-      INNER JOIN classes cl ON le.class_id = cl.class_id 
+      LEFT JOIN classes cl ON le.class_id = cl.class_id 
       LEFT JOIN staffs s ON cl.instructor_id = s.id
       WHERE le.student_id = ?
       ORDER BY le.created_at DESC

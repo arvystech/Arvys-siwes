@@ -225,10 +225,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="logbook-summary-card" style="margin-bottom: 24px; background: var(--primary-gradient); color: #ffffff; border-radius: var(--radius-2xl); padding: 20px; box-shadow: var(--shadow-lg);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <span style="font-size: 13px; font-weight: 700; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.5px;">Your Progress</span>
-                    <span style="font-size: 14px; font-weight: 700; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: var(--radius-full);">Week 8</span>
+                    <span class="summary-week-badge" style="font-size: 14px; font-weight: 700; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: var(--radius-full);">Loading...</span>
                 </div>
-                <div style="font-size: 20px; font-weight: 800; margin-bottom: 4px;">4 Logs Completed</div>
-                <div style="font-size: 13px; opacity: 0.9;">One more log to complete your weekly goal!</div>
+                <div class="summary-logs-count" style="font-size: 20px; font-weight: 800; margin-bottom: 4px;">-- Logs Completed</div>
+                <div class="summary-logs-hint" style="font-size: 13px; opacity: 0.9;">Fetching your progress...</div>
             </div>
 
 
@@ -342,36 +342,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="panel-scroll-content">
                     <div class="project-context-card">
                         <span class="context-label">Current Progress</span>
-                        <h3 class="context-title">Week 8 • Day 4</h3>
-                        <div class="context-desc">Use this form to log your daily learning activities and progress.</div>
+                        <h3 class="context-title">-- • --</h3>
+                        <div class="context-desc" id="logContextDesc">Log details are synchronized with your scheduled classes. Please check back when a session is active.</div>
                     </div>
 
                     <form class="modern-submission-form" id="logEntryForm">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
                             <div class="form-section" style="margin-bottom: 0;">
                                 <label class="modern-label">Week Number</label>
-                                <input type="number" class="modern-input" id="logWeek" value="8" min="1" max="12" style="padding-left: 16px;">
+                                <div class="modern-value-display" id="logWeek">--</div>
                             </div>
                             <div class="form-section" style="margin-bottom: 0;">
                                 <label class="modern-label">Class Day</label>
-                                <select class="modern-input" id="logDay" style="padding-left: 16px; appearance: auto;">
-                                    <option value="1">Day 1</option>
-                                    <option value="2">Day 2</option>
-                                    <option value="3">Day 3</option>
-                                    <option value="4" selected>Day 4</option>
-                                    <option value="5">Day 5</option>
-                                </select>
+                                <div class="modern-value-display" id="logDay">--</div>
                             </div>
                         </div>
 
                         <div class="form-section">
                             <label class="modern-label">Topic</label>
-                            <input type="text" class="modern-input" id="logTopic" placeholder="e.g. Advanced UI Interactivity" style="padding-left: 16px;">
+                            <div class="modern-value-display" id="logTopic">TBA</div>
                         </div>
 
                         <div class="form-section">
                             <label class="modern-label">Tutor</label>
-                            <input type="text" class="modern-input" id="logTutor" placeholder="e.g. Sarah Johnson" style="padding-left: 16px;">
+                            <div class="modern-value-display" id="logTutor">TBA</div>
                         </div>
 
                         <div class="form-section">
@@ -843,38 +837,30 @@ function initProjectPage() {
 
 // Initialize Logbook Page
 function initLogbook() {
-    const logEntryExpandables = document.querySelectorAll('.logbook-entry-expandable');
-    logEntryExpandables.forEach(entry => {
-        entry.addEventListener('click', () => {
-            const content = entry.querySelector('.log-entry-content');
-            const isExpanded = entry.classList.contains('expanded');
+    // View Tab Switching Logic
+    const viewTabs = document.querySelectorAll('.view-tab');
+    const logbookContent = document.getElementById('logbookContent');
 
-            // Close others
-            logEntryExpandables.forEach(e => {
-                e.classList.remove('expanded');
-                e.querySelector('.log-entry-content').style.display = 'none';
-            });
+    viewTabs.forEach(tab => {
+        tab.onclick = () => {
+            viewTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
 
-            if (!isExpanded) {
-                entry.classList.add('expanded');
-                content.style.display = 'block';
+            const view = tab.dataset.view;
+            if (logbookContent) {
+                logbookContent.classList.remove('view-all', 'view-weekly');
+                logbookContent.classList.add(`view-${view}`);
+
+                // Refresh rendering to update week headers
+                if (window.lastLogbookEntries) {
+                    renderLogbookEntries(window.lastLogbookEntries);
+                }
             }
-        });
+        };
     });
 
-    // Past weeks collapsible
-    const weekCards = document.querySelectorAll('.week-collapse-card');
-    weekCards.forEach(card => {
-        const header = card.querySelector('.week-collapse-header');
-        header.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isExpanded = card.classList.contains('expanded');
-            weekCards.forEach(c => c.classList.remove('expanded'));
-            if (!isExpanded) {
-                card.classList.add('expanded');
-            }
-        });
-    });
+    // Initialize expansion for static entries
+    initializeLogbookExpansionListeners();
 
     // New Log Entry Flow
     const addLogBtn = document.getElementById('addLogBtn');
@@ -886,12 +872,36 @@ function initLogbook() {
 
     if (addLogBtn && logSubmissionPanel) {
         addLogBtn.addEventListener('click', () => {
-            // Pre-fill form if current class info is available
-            if (window.currentClass) {
-                const topicField = document.getElementById('logTopic');
-                const tutorField = document.getElementById('logTutor');
-                if (topicField && !topicField.value) topicField.value = window.currentClass.topic || '';
-                if (tutorField && !tutorField.value) tutorField.value = window.currentClass.instructorName || '';
+            // Pre-fill form if current class info is available (stored in dashboard.js)
+            const classData = window.currentClassData;
+
+            const weekField = document.getElementById('logWeek');
+            const dayField = document.getElementById('logDay');
+            const topicField = document.getElementById('logTopic');
+            const tutorField = document.getElementById('logTutor');
+            const contextTitle = document.querySelector('#logSubmissionPanel .context-title');
+
+            if (classData) {
+                if (weekField) weekField.textContent = classData.weekNumber || '--';
+                if (dayField) dayField.textContent = `Day ${classData.dayNumber}` || '--';
+                if (topicField) topicField.textContent = classData.topic || 'No Topic Set';
+                if (tutorField) tutorField.textContent = classData.instructorName || 'Not Assigned';
+
+                if (contextTitle) {
+                    contextTitle.textContent = `Week ${classData.weekNumber || '?'} • Day ${classData.dayNumber || '?'}`;
+                }
+                const contextDesc = document.getElementById('logContextDesc');
+                if (contextDesc) contextDesc.textContent = 'Use this form to log your daily learning activities and progress.';
+            } else {
+                // No class scheduled fallback
+                if (weekField) weekField.textContent = '--';
+                if (dayField) dayField.textContent = '--';
+                if (topicField) topicField.textContent = 'Session Not Available';
+                if (tutorField) tutorField.textContent = 'N/A';
+
+                if (contextTitle) contextTitle.textContent = 'No Class Scheduled';
+                const contextDesc = document.getElementById('logContextDesc');
+                if (contextDesc) contextDesc.textContent = 'There is currently no class session scheduled for today.';
             }
 
             logSubmissionPanel.classList.add('active');
@@ -924,10 +934,10 @@ function initLogbook() {
     if (saveLogBtn) {
         saveLogBtn.addEventListener('click', async () => {
             const content = logContent.value;
-            const week = document.getElementById('logWeek').value;
-            const day = document.getElementById('logDay').value;
-            const topic = document.getElementById('logTopic').value;
-            const tutor = document.getElementById('logTutor').value;
+            const week = document.getElementById('logWeek').textContent;
+            const day = document.getElementById('logDay').textContent;
+            const topic = document.getElementById('logTopic').textContent;
+            const tutor = document.getElementById('logTutor').textContent;
 
             if (!content || !topic || !tutor) {
                 showToast('Please fill in all fields', 'error');
@@ -1137,6 +1147,9 @@ window.loadLogbookEntries = async function () {
         const result = await response.json();
 
         if (response.ok && result.success) {
+            window.lastLogbookEntries = result.entries; // Cache for view switching
+            console.log('Logbook entries:', result.entries);
+
             renderLogbookEntries(result.entries);
         }
     } catch (err) {
@@ -1146,23 +1159,47 @@ window.loadLogbookEntries = async function () {
 
 // Render entries to the UI
 function renderLogbookEntries(entries) {
-    const container = document.getElementById('currentWeekLogs');
-    if (!container) return;
+    const currentWeekLogsContainer = document.getElementById('currentWeekLogs');
+    const pastWeeksStack = document.querySelector('.past-weeks-stack');
+    if (!currentWeekLogsContainer) return;
 
     if (!entries || entries.length === 0) {
-        container.innerHTML = '<div style="text-align: center; padding: 40px 24px; color: var(--gray-400); background: var(--gray-50); border-radius: var(--radius-xl); border: 1px dashed var(--gray-200);">No entries yet. Add your first log!</div>';
+        currentWeekLogsContainer.innerHTML = '<div style="text-align: center; padding: 40px 24px; color: var(--gray-400); background: var(--gray-50); border-radius: var(--radius-xl); border: 1px dashed var(--gray-200);">No entries yet. Add your first log!</div>';
+        if (pastWeeksStack) pastWeeksStack.innerHTML = '';
         return;
     }
 
-    container.innerHTML = entries.map((entry, index) => {
+    // Determine actual "current" week for sectioning
+    const activeClassWeek = window.currentClassData ? Number(window.currentClassData.weekNumber) : 0;
+    const latestLoggedWeek = entries[0] && entries[0].week_number ? Number(entries[0].week_number) : 0;
+
+    // We favor the highest week number between active class and latest activity
+    let currentWeekNum = Math.max(activeClassWeek, latestLoggedWeek);
+
+    // Fallback: If currentWeekNum results in 0, but we have entries, use the latest entry's week
+    if (!currentWeekNum && entries.length > 0) {
+        currentWeekNum = latestLoggedWeek || 'N/A';
+    }
+
+    // Group entries by week
+    const groupedEntries = entries.reduce((groups, entry) => {
+        const week = entry.week_number || 'N/A';
+        if (!groups[week]) groups[week] = [];
+        groups[week].push(entry);
+        return groups;
+    }, {});
+
+    // Helper to render a single log item
+    const renderLogItem = (entry, index, isCurrentWeek) => {
         const date = new Date(entry.created_at).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-        const isLatest = index === 0;
+        const dayLabel = entry.day_number ? `Day ${entry.day_number}` : 'No Day';
+        const isLatest = isCurrentWeek && index === 0;
 
         return `
-            <div class="logbook-entry-expandable ${isLatest ? 'expanded' : ''}" data-id="${entry.entry_id}">
+            <div class="logbook-entry-expandable" data-id="${entry.entry_id}">
                 <div class="logbook-week-header">
                     <div style="flex: 1;">
-                        <div class="logbook-day-tag">${date} ${isLatest ? '• Latest' : ''}</div>
+                        <div class="logbook-day-tag">${date} • ${dayLabel} ${isLatest ? '• Latest' : ''}</div>
                         <div class="logbook-entry-preview">${entry.entry.substring(0, 60)}${entry.entry.length > 60 ? '...' : ''}</div>
                     </div>
                     <div class="week-collapse-toggle">
@@ -1171,11 +1208,11 @@ function renderLogbookEntries(entries) {
                         </svg>
                     </div>
                 </div>
-                <div class="log-entry-content" style="display: ${isLatest ? 'block' : 'none'};">
+                <div class="log-entry-content" style="display: none;">
                     <div class="log-entry-class-details">
-                        <div style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase; margin-bottom: 8px;">Class Details</div>
-                        <div style="font-weight: 700; font-size: 14px; color: #ffffff;">${entry.title}</div>
-                        <div style="font-size: 12px; color: rgba(255,255,255,0.8);">Tutor: ${entry.instructor_name || 'TBA'}</div>
+                        <div style="font-size: 11px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; margin-bottom: 8px;">Class Details</div>
+                        <div style="font-weight: 700; font-size: 14px; color: var(--gray-900);">${entry.title}</div>
+                        <div style="font-size: 12px; color: var(--gray-600);">Tutor: ${entry.instructor_name || 'TBA'}</div>
                     </div>
                     <div class="log-entry-full">
                         <div style="font-size: 11px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; margin-bottom: 8px;">Your Learning Log</div>
@@ -1193,31 +1230,176 @@ function renderLogbookEntries(entries) {
                 </div>
             </div>
         `;
-    }).join('');
+    };
 
-    // Re-attach listeners for expansion
-    const expandables = container.querySelectorAll('.logbook-entry-expandable');
+    // 1. Render Current Week
+    let currentWeekEntries = (groupedEntries[currentWeekNum] || []).sort((a, b) => (b.day_number || 0) - (a.day_number || 0));
+
+    // If "This Week" is calculated but empty, and we have N/A logs, show N/A logs in "This Week" instead of leaving it empty
+    if (currentWeekEntries.length === 0 && groupedEntries['N/A']) {
+        currentWeekEntries = groupedEntries['N/A'];
+        currentWeekNum = 'N/A';
+    }
+
+    currentWeekLogsContainer.innerHTML = currentWeekEntries.map((entry, idx) => renderLogItem(entry, idx, true)).join('');
+
+    // Header Management
+    const isWeeklyView = document.querySelector('.view-tab[data-view="weekly"]')?.classList.contains('active');
+    const thisWeekHeader = document.querySelector('.logbook-section-header:nth-of-type(1)');
+    const pastWeeksHeaderSection = document.querySelector('.logbook-section-header:nth-of-type(2)');
+    const pastWeeksTitle = pastWeeksHeaderSection?.querySelector('h3');
+
+    if (thisWeekHeader) {
+        thisWeekHeader.style.display = isWeeklyView ? 'none' : 'flex';
+        const thisWeekTitle = thisWeekHeader.querySelector('h3');
+        if (thisWeekTitle) {
+            thisWeekTitle.textContent = currentWeekNum ? `Week ${currentWeekNum} (This Week)` : "This Week";
+        }
+    }
+
+    if (pastWeeksTitle) {
+        pastWeeksTitle.textContent = isWeeklyView ? "Program Timeline" : "Past Weeks";
+        // Also ensure the past weeks section header is always visible if there are logs
+        if (pastWeeksHeaderSection) pastWeeksHeaderSection.style.display = 'flex';
+    }
+
+    // Update summary card
+    const summaryWeek = document.querySelector('.summary-week-badge');
+    const summaryCount = document.querySelector('.summary-logs-count');
+    const summaryHint = document.querySelector('.summary-logs-hint');
+
+    if (summaryWeek) summaryWeek.textContent = currentWeekNum ? `Week ${currentWeekNum}` : 'No Class';
+    if (summaryCount) summaryCount.textContent = `${currentWeekEntries.length} Logs Completed`;
+
+    if (summaryHint) {
+        if (currentWeekEntries.length === 0) {
+            summaryHint.textContent = "Start logging your learning today!";
+        } else if (currentWeekEntries.length < 5) {
+            summaryHint.textContent = `${5 - currentWeekEntries.length} more logs to complete your weekly goal!`;
+        } else {
+            summaryHint.textContent = "Weekly goal achieved! Great work!";
+        }
+    }
+
+    // 2. Render Past Weeks (and current week as a card for Weekly View)
+    if (pastWeeksStack) {
+        const sortedWeeks = Object.keys(groupedEntries)
+            .map(Number)
+            .sort((a, b) => b - a); // Newest first
+
+        const isWeeklyView = document.querySelector('.view-tab[data-view="weekly"]')?.classList.contains('active');
+
+        // Count visible past weeks
+        const hasVisiblePastWeeks = sortedWeeks.some(w => w !== Number(currentWeekNum));
+
+        if (sortedWeeks.length === 0 || (!isWeeklyView && !hasVisiblePastWeeks)) {
+            pastWeeksStack.innerHTML = '<div style="text-align: center; padding: 24px; color: var(--gray-400); font-size: 13px; background: var(--gray-50); border: 1px dashed var(--gray-200); border-radius: var(--radius-lg);">No past logs found in your history.</div>';
+        } else {
+            pastWeeksStack.innerHTML = sortedWeeks.map(week => {
+                const weekLogs = (groupedEntries[week] || []).sort((a, b) => (b.day_number || 0) - (a.day_number || 0));
+                const isCurrent = String(week) === String(currentWeekNum);
+
+                if (isCurrent && !isWeeklyView) return ''; // Skip rendering in dual section if not in weekly view
+
+                // Construct a summary of days (e.g., "Days 1, 2, 4 complete")
+                const daysLogged = [...new Set(weekLogs.map(l => l.day_number).filter(Boolean))].sort((a, b) => a - b);
+                const daySummary = daysLogged.length > 0 ? `Days ${daysLogged.join(', ')} complete` : `${weekLogs.length} logs completed`;
+
+                return `
+                    <div class="week-collapse-card ${isCurrent ? 'past-week-card-current' : ''}" 
+                         data-week="${week}" 
+                         style="${(isCurrent && !isWeeklyView) ? 'display: none;' : ''}">
+                        <div class="week-collapse-header">
+                            <div class="week-collapse-info">
+                                <span class="week-collapse-title">Week ${week} Logs ${isCurrent ? '• Active' : ''}</span>
+                                <span class="week-collapse-summary">${daySummary}</span>
+                            </div>
+                            <div class="week-collapse-toggle">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6,9 12,15 18,9" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="week-collapse-content" style="display: none; padding: 12px 0;">
+                            <div class="logs-stack">
+                                ${weekLogs.map((entry, idx) => renderLogItem(entry, idx, isCurrent)).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+
+    // Re-attach listeners for expansion and share buttons
+    initializeLogbookExpansionListeners();
+    initializeShareButtons();
+    initializePastWeekListeners();
+}
+
+function initializePastWeekListeners() {
+    const weekCards = document.querySelectorAll('.week-collapse-card');
+    weekCards.forEach(card => {
+        const header = card.querySelector('.week-collapse-header');
+        header.onclick = () => {
+            const content = card.querySelector('.week-collapse-content');
+            const isExpanded = card.classList.contains('expanded');
+
+            // Close other week cards
+            weekCards.forEach(c => {
+                if (c !== card) {
+                    c.classList.remove('expanded');
+                    const cContent = c.querySelector('.week-collapse-content');
+                    if (cContent) cContent.style.display = 'none';
+                }
+            });
+
+            if (isExpanded) {
+                card.classList.remove('expanded');
+                if (content) content.style.display = 'none';
+            } else {
+                card.classList.add('expanded');
+                if (content) content.style.display = 'block';
+            }
+        };
+    });
+}
+
+function initializeLogbookExpansionListeners() {
+    const expandables = document.querySelectorAll('.logbook-entry-expandable');
     expandables.forEach(entry => {
-        entry.querySelector('.logbook-week-header').addEventListener('click', () => {
+        const header = entry.querySelector('.logbook-week-header');
+        header.onclick = () => { // Use onclick to replace existing listeners if any
             const content = entry.querySelector('.log-entry-content');
             const isExpanded = entry.classList.contains('expanded');
 
-            // Close others
+            // Close others (Accordion style)
             expandables.forEach(e => {
-                e.classList.remove('expanded');
-                e.querySelector('.log-entry-content').style.display = 'none';
+                if (e !== entry) {
+                    e.classList.remove('expanded');
+                    const c = e.querySelector('.log-entry-content');
+                    if (c) c.style.display = 'none';
+                }
             });
 
-            if (!isExpanded) {
+            // Toggle current
+            if (isExpanded) {
+                entry.classList.remove('expanded');
+                if (content) content.style.display = 'none';
+            } else {
                 entry.classList.add('expanded');
-                content.style.display = 'block';
+                if (content) content.style.display = 'block';
             }
-        });
+        };
     });
+}
 
-    // Handle share buttons specifically
+function initializeShareButtons() {
+    const container = document.getElementById('currentWeekLogs');
+    if (!container) return;
+
     container.querySelectorAll('.share-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.onclick = (e) => {
             e.stopPropagation();
             if (typeof window.generateShareableCard === 'function') {
                 window.generateShareableCard({
@@ -1227,6 +1409,6 @@ function renderLogbookEntries(entries) {
                     day: btn.dataset.day
                 });
             }
-        });
+        };
     });
 }

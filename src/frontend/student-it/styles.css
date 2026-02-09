@@ -2532,6 +2532,19 @@ ul {
     border-top: 1px solid var(--gray-100);
 }
 
+/* Expansion Feedback */
+.logbook-entry-expandable .week-collapse-toggle svg {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.logbook-entry-expandable.expanded .week-collapse-toggle svg {
+    transform: rotate(180deg);
+}
+
+.log-entry-content {
+    transition: all 0.3s ease;
+}
+
 /* Shareable Log Card */
 .shareable-log-card {
     background: linear-gradient(135deg, var(--primary) 0%, #4a5bd4 100%);

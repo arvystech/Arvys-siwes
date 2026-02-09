@@ -210,6 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         initMorePage();
+        loadStudentProfile();
     }
 
     // Populate Class Schedule Page
@@ -956,6 +957,81 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Initialize More Page Navigation
+window.loadStudentProfile = async function () {
+    try {
+        const response = await authenticatedFetch('/student/api/profile');
+        if (!response) return;
+
+        const result = await response.json();
+        if (response.ok && result.success) {
+            const profile = result.data;
+            window.currentStudentProfile = profile;
+
+            // 1. Update main "More" page profile card
+            const mainProfileCard = document.querySelector('.profile-card');
+            if (mainProfileCard) {
+                const nameEl = mainProfileCard.querySelector('.profile-name');
+                const schoolEl = mainProfileCard.querySelector('.profile-institution');
+                const avatarEl = mainProfileCard.querySelector('.profile-avatar');
+
+                if (nameEl) nameEl.textContent = profile.name || 'Student';
+                if (schoolEl) schoolEl.textContent = profile.school_name || 'N/A';
+
+                if (avatarEl && profile.name) {
+                    const initials = profile.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                    avatarEl.textContent = initials;
+                }
+            }
+
+            // 2. Update Profile subpage header
+            const profileHeaderCard = document.querySelector('.profile-header-card');
+            if (profileHeaderCard) {
+                const nameEl = profileHeaderCard.querySelector('.profile-header-name');
+                const idEl = profileHeaderCard.querySelector('.profile-header-id');
+                const avatarEl = profileHeaderCard.querySelector('.profile-header-avatar');
+
+                if (nameEl) nameEl.textContent = profile.name || 'Student';
+                if (idEl) idEl.textContent = profile.matric_no || 'N/A';
+                if (avatarEl && profile.name) {
+                    const initials = profile.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                    avatarEl.textContent = initials;
+                }
+            }
+
+            // 3. Update Personal Information section
+            const mapping = {
+                'profile-full-name': profile.name,
+                'profile-email': profile.email,
+                'profile-phone': profile.phone,
+                'profile-gender': profile.gender,
+                'profile-dob': profile.dob ? new Date(profile.dob).toLocaleDateString() : 'N/A',
+                'profile-location': profile.city && profile.state ? `${profile.city}, ${profile.state}` : (profile.city || profile.state || 'N/A'),
+                'profile-institution': profile.school_name,
+                'profile-course': profile.course_title,
+                'profile-matric': profile.matric_no,
+                'profile-session': profile.batch_session,
+                'profile-payment': profile.student_payment_status || 'Pending'
+            };
+
+            for (const [id, value] of Object.entries(mapping)) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value || 'N/A';
+            }
+
+            // Special handling for payment status badge/color if needed
+            const paymentEl = document.getElementById('profile-payment');
+            if (paymentEl) {
+                const status = (profile.student_payment_status || '').toLowerCase();
+                paymentEl.style.color = status === 'paid' ? 'var(--success)' : (status === 'partial' ? 'var(--warning)' : 'var(--danger)');
+                paymentEl.style.fontWeight = '700';
+            }
+
+        }
+    } catch (err) {
+        console.error('Error loading student profile:', err);
+    }
+};
+
 function initMorePage() {
     const settingsRows = document.querySelectorAll('.settings-row, .profile-card');
 

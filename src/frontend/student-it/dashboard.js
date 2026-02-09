@@ -33,6 +33,9 @@ async function loadDashboardData() {
         // Update logbook status
         updateLogbookStatus(data.logbookStatus);
 
+        // Store the full current class data globally for logbook population
+        window.currentClassData = data.currentClass;
+
         console.log('Dashboard data loaded successfully');
 
     } catch (error) {

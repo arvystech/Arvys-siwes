@@ -1141,3 +1141,31 @@
     font-size: 10px;
     font-weight: 900;
 }
+
+/* Non-input value display (for read-only auto-populated fields) */
+.modern-value-display {
+    width: 100%;
+    background: var(--gray-50);
+    border: 2px solid var(--gray-100);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gray-700);
+    min-height: 52px;
+    align-items: center;
+}
+
+/* Logbook View Switching */
+#logbookContent.view-weekly #currentWeekLogs {
+    display: none;
+}
+
+#logbookContent.view-weekly .past-weeks-stack {
+    margin-top: 0;
+}
+
+/* Ensure current week card is visible in Weekly View */
+.view-weekly .past-week-card-current {
+    display: block !important;
+}
