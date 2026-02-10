@@ -54,7 +54,7 @@ const student_login_post = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 1000 * 60 * 60, // 1 hour
+      maxAge: 1000 * 60 * 60 * 24, // 1 day (for development)
       path: '/'
     });
 

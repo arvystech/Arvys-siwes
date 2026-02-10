@@ -1235,14 +1235,9 @@ a {
     flex-direction: column;
     align-items: center;
     gap: 2px;
-    cursor: pointer;
     padding: 6px 8px;
     border-radius: var(--radius-lg);
     transition: var(--transition-base);
-}
-
-.home-stat:active {
-    background: var(--gray-50);
 }
 
 .home-stat-value {

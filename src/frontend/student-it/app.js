@@ -150,6 +150,10 @@ window.navigateToPage = function (pageId, isBack = false) {
         if (typeof window.loadProfileData === 'function') {
             window.loadProfileData();
         }
+    } else if (pageId === 'projects') {
+        if (typeof window.fetchAndRenderProjects === 'function') {
+            window.fetchAndRenderProjects();
+        }
     }
 
     // Haptic feedback simulation
@@ -471,15 +475,6 @@ if (panelLogAttendanceBtn) {
     });
 }
 
-// Home Stats Navigation
-homeStats.forEach(stat => {
-    stat.addEventListener('click', () => {
-        const targetPage = stat.dataset.nav;
-        if (targetPage) {
-            navigateToPage(targetPage);
-        }
-    });
-});
 
 // Home Up Next Items
 homeUpnextItems.forEach(item => {

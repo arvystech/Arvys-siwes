@@ -2,6 +2,7 @@ const studentsModel = require('../models/studentModel');
 const classesModel = require('../../class/models/classModel');
 const logbookModel = require('../../logbook/models/logbookModel');
 const dayjs = require('dayjs');
+const projectModel = require('../../project/models/projectModel');
 const customParseFormat = require('dayjs/plugin/customParseFormat');
 dayjs.extend(customParseFormat);
 
@@ -73,13 +74,39 @@ const student_dashboard_get = async (req, res) => {
     const attendanceStatsResult = await studentsModel.getStudentAttendanceRecord(student.studentId);
     const logsCountResult = await logbookModel.getEntriesByStudentId(student.studentId);
 
-    // Calculate attendance percentage (mock for now if total classes unknown, or use a reasonable denominator)
-    // Let's assume courses have a theoretical total or just count what we have
+    // Get project statistics
+    let projectStats = {
+      projectsCompleted: 0,
+      projectsTotal: 0,
+      upcomingProject: null
+    };
+
+    if (studentDetails.batch && studentDetails.course) {
+      const pStats = await projectModel.getProjectStats(studentDetails.batch, studentDetails.course, student.studentId);
+      const allProjects = await projectModel.getProjectsForStudent(studentDetails.batch, studentDetails.course, student.studentId);
+
+      // Find upcoming project
+      const upcoming = allProjects.find(p => !p.submission_id && p.student_status !== 'overdue');
+
+      projectStats = {
+        projectsCompleted: pStats.completed_projects || 0,
+        projectsTotal: pStats.total_projects || 0,
+        upcomingProject: upcoming ? {
+          id: upcoming.project_id,
+          title: upcoming.title,
+          dueDate: upcoming.due_date,
+          daysUntilDue: upcoming.days_until_due,
+          status: upcoming.student_status
+        } : null
+      };
+    }
+
+    // Prepare attendance statistics
     const attendanceStats = {
       percentage: Math.min(100, (attendanceStatsResult.length * 5)), // Mock calculation for now
       logsCount: logsCountResult.length,
-      projectsCompleted: 0, // TODO: Implement project model
-      projectsTotal: 5
+      projectsCompleted: projectStats.projectsCompleted,
+      projectsTotal: projectStats.projectsTotal
     };
 
     // Check logbook status for today/current class
@@ -105,7 +132,8 @@ const student_dashboard_get = async (req, res) => {
       },
       currentClass,
       attendanceStats,
-      logbookStatus
+      logbookStatus,
+      upcomingProject: projectStats.upcomingProject
     };
 
     return res.status(200).json({

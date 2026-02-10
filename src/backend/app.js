@@ -18,6 +18,7 @@ const studentApiRoutes = require("./modules/student/routes/api");
 const studentAuthRoutes = require("./modules/student/routes/auth");
 
 const classApiRoutes = require("./modules/class/routes/api");
+const projectRoutes = require("./modules/project/routes/projectRoutes");
 
 const app = express();
 
@@ -25,7 +26,8 @@ const path = require("path");
 
 app.use(cors());
 app.use(helmet());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 // app.use(rateLimiter);
 
@@ -40,6 +42,9 @@ app.use("/student/auth", studentAuthRoutes);
 
 // Class Module
 app.use('/class/api', classApiRoutes);
+
+// Project Module
+app.use('/project/api', projectRoutes);
 
 // Main Frontend - Static Files
 app.use('/assets', express.static(path.join(__dirname, "../frontend/assets")));

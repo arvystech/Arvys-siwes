@@ -33,6 +33,9 @@ async function loadDashboardData() {
         // Update logbook status
         updateLogbookStatus(data.logbookStatus);
 
+        // Populate upcoming project
+        populateUpcomingProject(data.upcomingProject);
+
         // Store the full current class data globally for logbook population
         window.currentClassData = data.currentClass;
 
@@ -203,19 +206,19 @@ function populateCurrentClass(currentClass) {
 // Populate attendance statistics
 function populateAttendanceStats(stats) {
     // Update attendance percentage
-    const attendancePercentageEl = document.querySelector('.home-stat[data-nav="progress-overview"] .home-stat-value');
+    const attendancePercentageEl = document.querySelector('#statAttendance .home-stat-value');
     if (attendancePercentageEl) {
         attendancePercentageEl.textContent = `${stats.percentage}%`;
     }
 
     // Update logs count
-    const logsCountEl = document.querySelector('.home-stat[data-nav="attendance"] .home-stat-value');
+    const logsCountEl = document.querySelector('#statLogs .home-stat-value');
     if (logsCountEl) {
         logsCountEl.textContent = stats.logsCount;
     }
 
     // Update projects count
-    const projectsCountEl = document.querySelector('.home-stat[data-nav="projects"] .home-stat-value');
+    const projectsCountEl = document.querySelector('#statProjects .home-stat-value');
     if (projectsCountEl) {
         projectsCountEl.textContent = `${stats.projectsCompleted}/${stats.projectsTotal}`;
     }
@@ -239,6 +242,43 @@ function updateLogbookStatus(logbookStatus) {
             }
         }
     }
+}
+
+// Populate upcoming project in "Up Next" section
+function populateUpcomingProject(upcomingProject) {
+    const upNextList = document.querySelector('.home-upnext-list');
+    if (!upNextList) return;
+
+    // Check if we already have a project item (to avoid duplicates if called multiple times)
+    const existingProjectItem = upNextList.querySelector('.home-upnext-item.project-item');
+    if (existingProjectItem) existingProjectItem.remove();
+
+    if (!upcomingProject) return;
+
+    // Create project item
+    const projectItem = document.createElement('div');
+    projectItem.className = 'home-upnext-item project-item';
+    projectItem.style.borderLeft = '4px solid var(--accent)';
+    projectItem.onclick = () => window.navigateToPage('projects');
+
+    const dueText = upcomingProject.daysUntilDue === 0
+        ? 'Due Today'
+        : (upcomingProject.daysUntilDue === 1 ? 'Due Tomorrow' : `Due in ${upcomingProject.daysUntilDue} days`);
+
+    projectItem.innerHTML = `
+        <div class="home-upnext-icon project" style="background: rgba(255, 107, 107, 0.1); color: var(--accent);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+        </div>
+        <div class="home-upnext-info">
+            <span class="home-upnext-name">${upcomingProject.title}</span>
+            <span class="home-upnext-meta">${dueText} • Project</span>
+        </div>
+    `;
+
+    // Prepend to list so it's most visible
+    upNextList.prepend(projectItem);
 }
 
 // Call this when the dashboard page becomes active
