@@ -1,4 +1,4 @@
-/**
+﻿/**
  * StudentIT - More Page & Subpages Content
  * iOS Settings-Inspired Navigation System
  */
@@ -330,136 +330,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h1 class="subpage-title">Learning Resources</h1>
                 </div>
 
-                <div class="resource-category-section">
-                    <h3 class="resource-category-title">Documents</h3>
-                    
-                    <div class="resource-list-item">
-                        <div class="resource-file-icon pdf">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14,2 14,8 20,8"/>
-                            </svg>
-                        </div>
-                        <div class="resource-file-info">
-                            <span class="resource-file-name">SIWES Handbook 2026</span>
-                            <span class="resource-file-meta">PDF • 4.2 MB</span>
-                        </div>
-                        <button class="resource-download-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                <polyline points="7,10 12,15 17,10"/>
-                                <line x1="12" y1="15" x2="12" y2="3"/>
-                            </svg>
-                        </button>
-                    </div>
-
-                    <div class="resource-list-item">
-                        <div class="resource-file-icon doc">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14,2 14,8 20,8"/>
-                                <line x1="16" y1="13" x2="8" y2="13"/>
-                                <line x1="16" y1="17" x2="8" y2="17"/>
-                                <polyline points="10,9 9,9 8,9"/>
-                            </svg>
-                        </div>
-                        <div class="resource-file-info">
-                            <span class="resource-file-name">Web Development Cheatsheet</span>
-                            <span class="resource-file-meta">PDF • 1.8 MB</span>
-                        </div>
-                        <button class="resource-download-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                <polyline points="7,10 12,15 17,10"/>
-                                <line x1="12" y1="15" x2="12" y2="3"/>
-                            </svg>
-                        </button>
-                    </div>
-
-                    <div class="resource-list-item">
-                        <div class="resource-file-icon pdf">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14,2 14,8 20,8"/>
-                            </svg>
-                        </div>
-                        <div class="resource-file-info">
-                            <span class="resource-file-name">Git and GitHub Guide</span>
-                            <span class="resource-file-meta">PDF • 2.1 MB</span>
-                        </div>
-                        <button class="resource-download-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                <polyline points="7,10 12,15 17,10"/>
-                                <line x1="12" y1="15" x2="12" y2="3"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="resource-category-section">
-                    <h3 class="resource-category-title">Video Tutorials</h3>
-
-                    <div class="resource-list-item">
-                        <div class="resource-file-icon video">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polygon points="5,3 19,12 5,21 5,3"/>
-                            </svg>
-                        </div>
-                        <div class="resource-file-info">
-                            <span class="resource-file-name">Introduction to HTML & CSS</span>
-                            <span class="resource-file-meta">Video • 45 min</span>
-                        </div>
-                        <button class="resource-download-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polygon points="5,3 19,12 5,21 5,3"/>
-                            </svg>
-                        </button>
-                    </div>
-
-                    <div class="resource-list-item">
-                        <div class="resource-file-icon video">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polygon points="5,3 19,12 5,21 5,3"/>
-                            </svg>
-                        </div>
-                        <div class="resource-file-info">
-                            <span class="resource-file-name">JavaScript Fundamentals</span>
-                            <span class="resource-file-meta">Video • 1h 20min</span>
-                        </div>
-                        <button class="resource-download-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polygon points="5,3 19,12 5,21 5,3"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="resource-category-section">
-                    <h3 class="resource-category-title">External Links</h3>
-
-                    <div class="resource-list-item">
-                        <div class="resource-file-icon link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                            </svg>
-                        </div>
-                        <div class="resource-file-info">
-                            <span class="resource-file-name">MDN Web Docs</span>
-                            <span class="resource-file-meta">External Link</span>
-                        </div>
-                        <button class="resource-download-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                                <polyline points="15,3 21,3 21,9"/>
-                                <line x1="10" y1="14" x2="21" y2="3"/>
-                            </svg>
-                        </button>
+                <div id="resources-container">
+                    <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+                        <div class="loader-mini" style="margin: 0 auto 16px;"></div>
+                        <p>Loading resources...</p>
                     </div>
                 </div>
             </div>
         `;
+
+        // Load resources dynamically
+        loadLearningResources();
     }
 
     // Populate Progress Overview Page
@@ -1214,4 +1095,157 @@ function navigateToSubpage(pageId) {
     }
 }
 
+
+// Function to load and display learning resources grouped by week
+async function loadLearningResources() {
+    const container = document.getElementById('resources-container');
+
+    if (!container) return;
+
+    try {
+        const response = await authenticatedFetch('/learning-resources/api/student');
+
+        if (!response || !response.ok) {
+            throw new Error('Failed to fetch resources');
+        }
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to load resources');
+        }
+
+        const { resourcesByWeek } = result.data;
+
+        // Clear loading state
+        container.innerHTML = '';
+
+        // Check if there are any resources
+        if (!resourcesByWeek || Object.keys(resourcesByWeek).length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 64px; height: 64px; margin: 0 auto 16px; opacity: 0.3;">
+                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
+                        <path d="M12 6v14"/>
+                        <path d="M16 6v14"/>
+                    </svg>
+                    <p style="font-size: 16px; margin-bottom: 8px;">No resources available yet</p>
+                    <p style="font-size: 14px; opacity: 0.7;">Resources will appear here as they are added to your classes</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Get week numbers and sort descending (most recent first)
+        const weeks = Object.keys(resourcesByWeek).sort((a, b) => b - a);
+
+        // Render resources grouped by week
+        weeks.forEach(weekNumber => {
+            const weekResources = resourcesByWeek[weekNumber];
+
+            const weekSection = document.createElement('div');
+            weekSection.className = 'resource-category-section';
+            weekSection.innerHTML = `<h3 class="resource-category-title">Week ${weekNumber}</h3>`;
+
+            weekResources.forEach(resource => {
+                const resourceItem = createResourceItem(resource);
+                weekSection.appendChild(resourceItem);
+            });
+
+            container.appendChild(weekSection);
+        });
+
+    } catch (error) {
+        console.error('Error loading learning resources:', error);
+        container.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; color: var(--danger);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 64px; height: 64px; margin: 0 auto 16px; opacity: 0.5;">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <p style="font-size: 16px; margin-bottom: 8px;">Failed to load resources</p>
+                <p style="font-size: 14px; opacity: 0.7;">Please try again later</p>
+            </div>
+        `;
+    }
+}
+
+// Helper function to create a resource item element
+function createResourceItem(resource) {
+    const item = document.createElement('a');
+    item.href = resource.url;
+    item.className = 'resource-list-item';
+    item.target = '_blank';
+    item.rel = 'noopener noreferrer';
+    item.style.cursor = 'pointer';
+    item.style.textDecoration = 'none';
+
+    // Determine icon and button based on type
+    let iconClass = '';
+    let iconSvg = '';
+    let buttonSvg = '';
+
+    if (resource.type === 'PDF') {
+        iconClass = 'pdf';
+        iconSvg = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14,2 14,8 20,8"/>
+            </svg>
+        `;
+        buttonSvg = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7,10 12,15 17,10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+        `;
+    } else if (resource.type === 'YOUTUBE') {
+        iconClass = 'video';
+        iconSvg = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/>
+                <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/>
+            </svg>
+        `;
+        buttonSvg = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5,3 19,12 5,21 5,3"/>
+            </svg>
+        `;
+    } else { // LINK
+        iconClass = 'link';
+        iconSvg = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+        `;
+        buttonSvg = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                <polyline points="15,3 21,3 21,9"/>
+                <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+        `;
+    }
+
+    const metaText = resource.description || resource.type;
+
+    item.innerHTML = `
+        <div class="resource-file-icon ${iconClass}">
+            ${iconSvg}
+        </div>
+        <div class="resource-file-info">
+            <span class="resource-file-name">${resource.title}</span>
+            <span class="resource-file-meta">${metaText}</span>
+        </div>
+        <button class="resource-download-btn" onclick="event.preventDefault();">
+            ${buttonSvg}
+        </button>
+    `;
+
+    return item;
+}
 

@@ -44,7 +44,12 @@ app.use("/student/auth", studentAuthRoutes);
 app.use('/class/api', classApiRoutes);
 
 // Project Module
+// Project Module
 app.use('/project/api', projectRoutes);
+
+// Learning Resources Module
+const learningResourcesRoutes = require("./modules/learning-resources/routes/learningResourcesRoutes");
+app.use("/learning-resources/api", learningResourcesRoutes);
 
 // Main Frontend - Static Files
 app.use('/assets', express.static(path.join(__dirname, "../frontend/assets")));

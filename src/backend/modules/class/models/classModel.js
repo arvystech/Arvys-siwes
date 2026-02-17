@@ -30,12 +30,13 @@ const getInstructorByInstructorId = async (instructorId, conn = null) => {
 };
 
 // Function to get the next class (today or future) for a batch and course
+// If no upcoming class, returns the most recent past class
 const getNextClassForBatch = async (batchId, courseId, conn = null) => {
   try {
     const connection = useConn(conn);
 
-    // Fetch the single closest class that is today or in the future
-    const query = `
+    // First, try to fetch the next upcoming class (today or future)
+    const upcomingQuery = `
       SELECT 
         cl.*, 
         CONCAT(s.first_name, ' ', s.last_name) as instructor_name,
@@ -47,8 +48,29 @@ const getNextClassForBatch = async (batchId, courseId, conn = null) => {
       ORDER BY cl.date ASC, cl.start_time ASC
       LIMIT 1
     `;
-    const [rows] = await connection.query(query, [batchId, courseId]);
-    return rows;
+    const [upcomingRows] = await connection.query(upcomingQuery, [batchId, courseId]);
+
+    // If we found an upcoming class, return it
+    if (upcomingRows.length > 0) {
+      return upcomingRows;
+    }
+
+    // No upcoming class found, fetch the most recent past class
+    const pastQuery = `
+      SELECT 
+        cl.*, 
+        CONCAT(s.first_name, ' ', s.last_name) as instructor_name,
+        c.title as course_title
+      FROM classes cl
+      LEFT JOIN staffs s ON cl.instructor_id = s.id
+      LEFT JOIN courses c ON cl.course_id = c.id
+      WHERE cl.batch_id = ? AND cl.course_id = ? AND cl.date < CURDATE()
+      ORDER BY cl.date DESC, cl.start_time DESC
+      LIMIT 1
+    `;
+    const [pastRows] = await connection.query(pastQuery, [batchId, courseId]);
+
+    return pastRows;
   } catch (error) {
     throw error;
   }
