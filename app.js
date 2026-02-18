@@ -1,5 +1,5 @@
 const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, '../.env') });
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const helmet = require('helmet');
@@ -49,31 +49,28 @@ const learningResourcesRoutes = require("./modules/learning-resources/routes/lea
 app.use("/learning-resources/api", learningResourcesRoutes);
 
 // Main Frontend - Static Files
-app.use('/assets', express.static(path.join(__dirname, "../frontend/assets")));
-
-// Student UI - Static Files
-app.use('/student', express.static(path.join(__dirname, "../frontend/student-it")));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Student UI - Pages
 app.get('/student/login', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/student-it', 'login.html'));
+  res.sendFile(path.join(__dirname, 'frontend/student-it', 'login.html'));
 });
 
 // Student UI - SPA Fallback
 app.use('/student/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/student-it', 'index.html'));
+  res.sendFile(path.join(__dirname, 'frontend/student-it', 'index.html'));
 });
 
 // Root to industrial training page
 app.get('/', (req, res) => {
   console.log('Accessing root route');
-  res.sendFile(path.join(__dirname, '../frontend', 'industrial-training.html'));
+  res.sendFile(path.join(__dirname, 'frontend', 'industrial-training.html'));
 });
 
 // IT register page
 app.get('/it-register', (req, res) => {
   console.log('Accessing it-register route');
-  res.sendFile(path.join(__dirname, '../frontend', 'it-register.html'));
+  res.sendFile(path.join(__dirname, 'frontend', 'it-register.html'));
 });
 
 // 404 Handler

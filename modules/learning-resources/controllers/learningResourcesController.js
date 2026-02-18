@@ -94,7 +94,7 @@ const removeResource = async (req, res, next) => {
         if (resource.type === 'PDF' && resource.url.startsWith('/assets/uploads/')) {
             // Construct absolute path
             const relativePath = resource.url.replace('/assets/', ''); // removes /assets/ prefix
-            const absolutePath = path.join(__dirname, '../../../../frontend/assets', relativePath);
+            const absolutePath = path.join(__dirname, '../../../public/assets', relativePath);
 
             fs.unlink(absolutePath, (err) => {
                 if (err) console.error("Failed to delete local file:", err);
