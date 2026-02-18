@@ -12,7 +12,7 @@ const addResource = async (req, res, next) => {
         // Handle File Upload (PDF)
         if (req.file) {
             // Construct URL accessible via frontend
-            // app.js serves /assets from src/frontend/assets
+            // app.js serves /assets from frontend/assets
             resourceUrl = `/assets/uploads/resources/${req.file.filename}`;
         }
 

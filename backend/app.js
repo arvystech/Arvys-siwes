@@ -1,5 +1,5 @@
-// app.js
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, '../.env') });
 const express = require("express");
 const cors = require("cors");
 const helmet = require('helmet');
@@ -21,9 +21,6 @@ const classApiRoutes = require("./modules/class/routes/api");
 const projectRoutes = require("./modules/project/routes/projectRoutes");
 
 const app = express();
-
-const path = require("path");
-
 app.use(cors());
 app.use(helmet());
 app.use(express.json({ limit: '50mb' }));
