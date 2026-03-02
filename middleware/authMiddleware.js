@@ -5,10 +5,8 @@ function authenticateStudentToken(req, res, next) {
     const token = req.cookies.arvys_siwes_student_token;
 
     if (!token) {
-        // TEMPORARY BYPASS: Inject a default student user for testing
-        console.log('Bypassing authentication: Injecting test student user');
-        req.user = { studentId: '3619595e-ddf3-4b74-8a60-ef32de98620e' };
-        return next();
+        console.log('No token provided');
+        return res.status(401).json({ success: false, message: 'No token provided' });
     }
 
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
@@ -22,7 +20,6 @@ function authenticateStudentToken(req, res, next) {
         next();
     });
 }
-
 
 function authenticateInstructorToken(req, res, next) {
     const token = req.cookies.arvys_siwes_instructor_token;
