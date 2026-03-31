@@ -61,6 +61,11 @@ app.use('/student/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/student-it', 'index.html'));
 });
 
+// Instructor UI
+app.get('/instructor', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/instructor', 'dashboard.html'));
+});
+
 // Root to industrial training page
 app.get('/', (req, res) => {
   console.log('Accessing root route');

@@ -23,6 +23,8 @@ const getInstructorByInstructorId = async (instructorId, conn = null) => {
     const connection = useConn(conn);
     const query = 'SELECT * FROM staffs WHERE id = ?';
     const [rows] = await connection.query(query, [instructorId]);
+    console.log(rows);
+
     return rows;
   } catch (error) {
     throw error;
@@ -126,6 +128,30 @@ const getCourseByCourseId = async (courseId, conn = null) => {
   }
 };
 
+// Function to get all batches
+const getAllBatches = async (conn = null) => {
+  try {
+    const connection = useConn(conn);
+    const query = 'SELECT * FROM batches WHERE status = "active"';
+    const [rows] = await connection.query(query);
+    return rows;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Function to get all courses
+const getAllCourses = async (conn = null) => {
+  try {
+    const connection = useConn(conn);
+    const query = 'SELECT * FROM courses';
+    const [rows] = await connection.query(query);
+    return rows;
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   getBatchByBatchId,
   getInstructorByInstructorId,
@@ -133,5 +159,7 @@ module.exports = {
   getClassByClassId,
   getClassByBatchId,
   getCourseByCourseId,
-  getNextClassForBatch
+  getNextClassForBatch,
+  getAllBatches,
+  getAllCourses
 };

@@ -18,10 +18,12 @@ const {
 // Create class
 const create_class_post = async (req, res) => {
   try {
-    const { batchId, instructorId, courseId, date, weekNumber, dayNumber, title, subtopics, description, codeSnippets, diagramUrl } = req.body;
+    const { batchId, instructorId, courseId, date, startTime, endTime, weekNumber, dayNumber, title, subtopics, description, codeSnippets, diagramUrl } = req.body;
+
+    console.log(req.body);
 
     // Make sure necessary data is provided
-    if (!batchId || !instructorId || !courseId || !date || !weekNumber || !dayNumber || !title || !description) {
+    if (!batchId || !instructorId || !courseId || !date || !startTime || !endTime || !weekNumber || !dayNumber || !title || !description) {
       console.log('Please provide all details');
       return res.status(400).json({ success: false, message: 'Please provide all details' });
     }
@@ -121,7 +123,7 @@ const create_class_post = async (req, res) => {
     }
 
     // Create class
-    const createClass = await classesModel.createClass(batchId, instructorId, courseId, date, weekNumber, dayNumber, title, subtopics, description, JSON.stringify(codeSnippets), diagramUrl);
+    const createClass = await classesModel.createClass(batchId, instructorId, courseId, date, startTime, endTime, weekNumber, dayNumber, title, subtopics, description, JSON.stringify(codeSnippets), diagramUrl);
     console.log(createClass);
 
     console.log('Successfully created class');
@@ -133,4 +135,26 @@ const create_class_post = async (req, res) => {
   }
 }
 
-module.exports = { create_class_post };
+// Get all active batches
+const get_batches = async (req, res) => {
+  try {
+    const batches = await classesModel.getAllBatches();
+    return res.status(200).json({ success: true, data: batches });
+  } catch (error) {
+    console.log('Error fetching batches: ', error);
+    return res.status(500).json({ success: false, message: "Error fetching batches" });
+  }
+};
+
+// Get all courses
+const get_courses = async (req, res) => {
+  try {
+    const courses = await classesModel.getAllCourses();
+    return res.status(200).json({ success: true, data: courses });
+  } catch (error) {
+    console.log('Error fetching courses: ', error);
+    return res.status(500).json({ success: false, message: "Error fetching courses" });
+  }
+};
+
+module.exports = { create_class_post, get_batches, get_courses };
